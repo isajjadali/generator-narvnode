@@ -1,0 +1,30 @@
+{
+    "dependencies": {
+        "yeoman-generator": "^4.5.0"
+    },
+    "description": "Yeoman generator for Express with KrakenJS, Mongoose or Sequelize, Sockets.io (Optional), AngularJS or ReactJS",
+    "devDependencies": {
+        "lodash": "^4.17.15"
+    },
+    "files": [
+        "app"
+    ],
+    "keywords": [
+        "yo",
+        "yeoman-generator",
+        "generator-maskers",
+        "generator-rarenode",
+        "react",
+        "angular",
+        "node",
+        "javascript",
+        "sequelize",
+        "mongoose"
+    ],
+    "name": "generator-narvnode",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/isajjadali/generator-narvnode"
+    },
+    "version": "1.0.0"
+}
