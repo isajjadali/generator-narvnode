@@ -4,7 +4,7 @@
     },
     "description": "Yeoman generator for Express with KrakenJS, Mongoose or Sequelize, Sockets.io (Optional), AngularJS or ReactJS",
     "devDependencies": {
-        "lodash": "^4.17.15"
+        "lodash": "^4.16.2"
     },
     "files": [
         "app"

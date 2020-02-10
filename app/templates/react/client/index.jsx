@@ -4,7 +4,7 @@ import styles from "./styles/main.scss";
 
 class App extends React.Component {
     render() {
-        return <h1> Welcome to you React App.</h1>;
+        return <h1>Welcome to you React App.</h1>;
     }
 }
 

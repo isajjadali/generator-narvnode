@@ -54,6 +54,6 @@ module.exports = function (router) {
                 token: token,
             });
     <% } else { } %>
-  });
+  }));
 
 };

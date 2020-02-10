@@ -1,15 +1,15 @@
 const debug = process.env.NODE_ENV !== 'production';
-const webpack = require('webpack')
-const path = require('path')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CompressionPlugin = require('compression-webpack-plugin')
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
 
-const BUILD_DIR = path.resolve(__dirname, 'public')
-const CLIENT_DIR = path.resolve(__dirname, 'client')
+const BUILD_DIR = path.resolve(__dirname, 'public');
+const CLIENT_DIR = path.resolve(__dirname, 'client');
 
-const config = {
+module.exports = {
     entry: `${CLIENT_DIR}/Index.jsx`,
     output: {
         path: BUILD_DIR,
@@ -60,11 +60,12 @@ const config = {
         new CopyWebpackPlugin([{ from: `${CLIENT_DIR}/static` }]),
         new HtmlWebpackPlugin({
             template: 'index.html'
-        })
+        }),
+        new CopyWebpackPlugin([
+            { from: CLIENT_DIR + '/assets', to: 'assets' },
+        ]),
     ]
 }
-
-module.exports = config;
 
 if (process.env.NODE_ENV === 'production') {
     module.exports.devtool = false
@@ -84,5 +85,5 @@ if (process.env.NODE_ENV === 'production') {
             threshold: 10240,
             minRatio: 0
         })
-    ])
+    ]);
 }

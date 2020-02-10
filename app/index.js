@@ -3,6 +3,12 @@
  */
 const Generators = require('yeoman-generator');
 
+const defaultPackageJsonScripts = {
+    "start": "nodemon ./app/server.js | bunyan",
+    "server-start": "nodemon ./app/server.js | bunyan --output short --color",
+    "preinstall": "npm i -g concurrently nodemon",
+}
+
 const Enums = {
     sequelize: 'sequelize',
     mongoose: 'mongoose',
@@ -13,7 +19,8 @@ const Enums = {
     seeders: 'seeders',
     paths: {
         appConfig: 'app/config/',
-        appModels: 'app/models/'
+        appModels: 'app/models/',
+        nodeApp: 'app/',
     }
 };
 
@@ -28,6 +35,21 @@ class GeneratorsBase extends Generators {
             appname: this.answers.appname,
         };
     }
+
+    executeFs(fsPaths = []) {
+        fsPaths.forEach(path =>
+            this.fs[path.ejsCompilationNotRequired ? 'copy' : 'copyTpl'](
+                this.templatePath(path.templatePath),
+                this.destinationPath(path.destinationPath),
+                this.getAnswers(),
+            )
+        );
+    }
+
+    extendPackageJson(json = {}) {
+        // Extend or create package.json file in destination path
+        this.fs.extendJSON(this.destinationPath('package.json'), { ...json });
+    }
 }
 
 module.exports = class extends GeneratorsBase {
@@ -41,13 +63,13 @@ module.exports = class extends GeneratorsBase {
             {
                 type: 'input',
                 name: 'appname',
-                message: 'Your Project Name',
+                message: 'Your Project Name:',
                 default: this.appname,
             },
             {
                 type: 'input',
                 name: 'description',
-                message: 'Describe Your App',
+                message: 'Describe Your App:',
             },
             {
                 type: 'list',
@@ -74,299 +96,337 @@ module.exports = class extends GeneratorsBase {
                 choices: [Enums.react, Enums.angular, Enums.none],
                 store: true,
             },
-            {
-                type: 'confirm',
-                name: 'shouldInstallDependencies',
-                message: 'Would You Like To Install All Dependencies?',
-                default: false,
-            },
         ]);
         this.appname = this.answers.appname || this.appname;
         return this.answers;
     }
 
     installingDependencies() {
-        if (this.answers.shouldInstallDependencies) {
-            const dependencies = [
-                'bluebird',
-                'bunyan',
-                'construx-copier',
-                'construx',
-                'express',
-                'kraken-js',
-                'lodash',
-                'moment',
-                "crypto",
-                "dotenv",
-                "jquery",
-                "jsonwebtoken",
-                "rxjs",
-                "tslib",
-                "zone.js",
-            ];
+        const fsPaths = [
+            {
+                templatePath: 'package-json/*',
+                destinationPath: '',
+            },
+        ];
+        this.executeFs(fsPaths);
 
-            const devDependencies = [
-                'concurrently',
-                'mocha',
-                'nodemon',
-                'supertest',
-                "codelyzer",
-                "eslint",
-            ];
+        const dependencies = [
+            'bluebird',
+            'bunyan',
+            'construx-copier',
+            'construx',
+            'express',
+            'kraken-js',
+            'lodash',
+            'moment',
+            "crypto",
+            "dotenv",
+            "jquery",
+            "jsonwebtoken",
+            "rxjs",
+            "tslib",
+            "zone.js",
+        ];
 
-            switch (this.answers.db) {
-                case Enums.mongoose: {
-                    dependencies.push(
-                        Enums.mongoose,
-                        "mongoose-delete",
-                    );
-                    break;
-                }
-                case Enums.sequelize: {
-                    dependencies.push(
-                        'mysql',
-                        Enums.sequelize,
-                    );
-                    devDependencies.push('sequelize-cli');
-                    break;
-                }
-                default:
-                    break;
+        const devDependencies = [
+            'concurrently',
+            'mocha',
+            'nodemon',
+            'supertest',
+            "codelyzer",
+            "eslint",
+            "extract-text-webpack-plugin",
+        ];
+
+        switch (this.answers.db) {
+            case Enums.mongoose: {
+                dependencies.push(
+                    Enums.mongoose,
+                    "mongoose-delete",
+                );
+                break;
             }
-
-            if (this.answers.isCorsEnable) {
-                dependencies.push('cors');
+            case Enums.sequelize: {
+                dependencies.push(
+                    'mysql',
+                    'mysql2',
+                    Enums.sequelize,
+                );
+                devDependencies.push('sequelize-cli');
+                break;
             }
-
-            if (this.answers.isCustomizeResponseAppenderEnable) {
-                dependencies.push('customize-response-appender');
-            }
-
-            switch (this.answers.frontend) {
-                case 'react': {
-                    dependencies.push(
-                        'babel-core',
-                        'babel-loader',
-                        'babel-preset-es2015',
-                        'babel-preset-react',
-                        'react-dom',
-                        'react',
-                        "@babel/core",
-                        "@babel/preset-env",
-                        "@babel/preset-react",
-                        "axios",
-                        "babel-eslint",
-                        "babel",
-                        "compression-webpack-plugin",
-                        "copy-webpack-plugin",
-                        "css-loader",
-                        "file-loader",
-                        "html-loader",
-                        "html-webpack-plugin",
-                        "node-sass",
-                        "raw-loader",
-                        "sass-loader",
-                        "style-loader",
-                        "webpack-cli",
-                        "webpack",
-                    );
-                    break;
-                }
-                case 'angular': {
-                    dependencies.push(
-                        "@angular/animations",
-                        "@angular/common",
-                        "@angular/compiler",
-                        "@angular/core",
-                        "@angular/forms",
-                        "@angular/platform-browser-dynamic",
-                        "@angular/platform-browser",
-                        "@angular/router",
-                        "tslib",
-                    );
-                    devDependencies.push(
-                        "@angular-devkit/build-angular",
-                        "@angular/cli",
-                        "@angular/compiler-cli",
-                        "@angular/language-service",
-                        "@types/jasmine",
-                        "@types/jasminewd2",
-                        "@types/node",
-                        "extract-text-webpack-plugin",
-                        "jasmine-core",
-                        "jasmine-spec-reporter",
-                        "karma-chrome-launcher",
-                        "karma-coverage-istanbul-reporter",
-                        "karma-jasmine-html-reporter",
-                        "karma-jasmine",
-                        "karma",
-                        "protractor",
-                        "ts-node",
-                        "tslint",
-                        "typescript",
-                    )
-                    break;
-                }
-            }
-
-            this.npmInstall(dependencies, { save: true });
-
-            this.npmInstall(devDependencies, { saveDev: true });
+            default:
+                break;
         }
+
+        if (this.answers.isCorsEnable) {
+            dependencies.push('cors');
+        }
+
+        if (this.answers.isCustomizeResponseAppenderEnable) {
+            dependencies.push('customize-response-appender');
+        }
+
+        switch (this.answers.frontend) {
+            case 'react': {
+                dependencies.push(
+                    'babel-core',
+                    'babel-loader',
+                    'babel-preset-es2015',
+                    'babel-preset-react',
+                    'react-dom',
+                    'react',
+                    "@babel/core",
+                    "@babel/preset-env",
+                    "@babel/preset-react",
+                    "axios",
+                    "babel-eslint",
+                    "babel",
+                    "compression-webpack-plugin",
+                    "copy-webpack-plugin",
+                    "css-loader",
+                    "file-loader",
+                    "html-loader",
+                    "html-webpack-plugin",
+                    "node-sass",
+                    "raw-loader",
+                    "sass-loader",
+                    "style-loader",
+                    "webpack-cli",
+                    "webpack",
+                    "extract-text-webpack-plugin@next",
+                );
+                break;
+            }
+            case 'angular': {
+                dependencies.push(
+                    "@angular/animations",
+                    "@angular/common",
+                    "@angular/compiler",
+                    "@angular/core",
+                    "@angular/forms",
+                    "@angular/platform-browser-dynamic",
+                    "@angular/platform-browser",
+                    "@angular/router",
+                    "tslib",
+                );
+                devDependencies.push(
+                    "@angular-devkit/build-angular",
+                    "@angular/cli",
+                    "@angular/compiler-cli",
+                    "@angular/language-service",
+                    "@types/jasmine",
+                    "@types/jasminewd2",
+                    "@types/node",
+                    "jasmine-core",
+                    "jasmine-spec-reporter",
+                    "karma-chrome-launcher",
+                    "karma-coverage-istanbul-reporter",
+                    "karma-jasmine-html-reporter",
+                    "karma-jasmine",
+                    "karma",
+                    "protractor",
+                    "ts-node",
+                    "tslint",
+                    "typescript@3.5.2",
+                )
+                break;
+            }
+        }
+
+        this.npmInstall(dependencies, { save: true });
+        this.npmInstall(devDependencies, { saveDev: true });
     }
 
     setupReact() {
         if (this.answers.frontend === Enums.react) {
-            this.fs.copyTpl(
-                this.templatePath('react/*'),
-                this.destinationPath(''),
-                this.getAnswers(),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath('react/.babelrc'),
-                this.destinationPath('.babelrc'),
-                this.getAnswers(),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath('react/client/*'),
-                this.destinationPath('client/'),
-                this.getAnswers(),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath('react/client/styles/*'),
-                this.destinationPath('client/styles/'),
-                this.getAnswers(),
-            );
+            const fsPaths = [
+                {
+                    templatePath: 'react/*',
+                    destinationPath: '',
+                },
+                {
+                    templatePath: 'react/.babelrc',
+                    destinationPath: '.babelrc',
+                },
+                {
+                    templatePath: 'react/client/*',
+                    destinationPath: 'client/',
+                },
+                {
+                    templatePath: 'react/client/styles/*',
+                    destinationPath: 'client/styles/',
+                },
+                {
+                    templatePath: 'react/client/assets/*',
+                    destinationPath: 'client/assets/',
+                },
+            ];
+            this.executeFs(fsPaths);
         }
     }
 
     setupAngular() {
         if (this.answers.frontend === Enums.angular) {
-            this.fs.copyTpl(
-                this.templatePath('angular/*'),
-                this.destinationPath(''),
-                this.getAnswers(),
-            );
-
-            this.fs.copy(
-                this.templatePath('angular/client'),
-                this.destinationPath('client/'),
-                this.getAnswers(),
-            );
+            const fsPaths = [
+                {
+                    templatePath: 'angular/*',
+                    destinationPath: '',
+                },
+                {
+                    templatePath: 'angular/client',
+                    destinationPath: 'client/',
+                    ejsCompilationNotRequired: true
+                },
+            ];
+            this.executeFs(fsPaths);
         }
     }
 
     setupNode() {
-        this.fs.copyTpl(
-            this.templatePath('node/*'),
-            this.destinationPath(''),
-            this.getAnswers(),
-        );
-
-        this.fs.copy(
-            this.templatePath('node/app/config/*'),
-            this.destinationPath('app/config/'),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('node/app/controllers/*'),
-            this.destinationPath('app/controllers/'),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('node/app/controllers/api/v1/*'),
-            this.destinationPath('app/controllers/api/v1/'),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('node/app/lib/*'),
-            this.destinationPath('app/lib/'),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('node/app/middlewares/*'),
-            this.destinationPath('app/middlewares/'),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('node/app/middlewares/response/*'),
-            this.destinationPath('app/middlewares/response/'),
-            this.getAnswers(),
-        );
+        const fsPaths = [
+            {
+                templatePath: 'app/*',
+                destinationPath: 'app/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}config/*`,
+                destinationPath: 'app/config/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}controllers/*`,
+                destinationPath: 'app/controllers/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}controllers/api/v1/*`,
+                destinationPath: 'app/controllers/api/v1/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}lib/*`,
+                destinationPath: 'app/lib/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}middlewares/*`,
+                destinationPath: 'app/middlewares/',
+            },
+            {
+                templatePath: `${Enums.paths.nodeApp}middlewares/response/*`,
+                destinationPath: 'app/middlewares/response/',
+            },
+        ];
+        this.executeFs(fsPaths);
     }
 
     setupMiddlewares() {
+        const fsPaths = [];
+
         if (this.answers.isCorsEnable) {
-            this.fs.copyTpl(
-                this.templatePath('cors/*'),
-                this.destinationPath(Enums.paths.appConfig),
-                this.getAnswers(),
-            );
+            fsPaths.push({
+                templatePath: 'cors/*',
+                destinationPath: Enums.paths.appConfig,
+            });
         }
 
         if (this.answers.isCustomizeResponseAppenderEnable) {
-            this.fs.copyTpl(
-                this.templatePath('customize-response-appender/*'),
-                this.destinationPath(Enums.paths.appConfig),
-                this.getAnswers(),
-            );
+            fsPaths.push({
+                templatePath: 'customize-response-appender/*',
+                destinationPath: Enums.paths.appConfig,
+            });
         }
+
+        this.executeFs(fsPaths);
+    }
+
+    createPackageJson() {
+        let packageJson = {
+            scripts: {
+                ...defaultPackageJsonScripts,
+            }
+        };
+
+        switch (this.answers.frontend) {
+            case Enums.react: {
+                packageJson.scripts = {
+                    ...packageJson.scripts,
+                    "build": "webpack -p",
+                    "client-start": "webpack -d --watch",
+                    "dev-start": "concurrently --kill-others \"npm run server-start\" \"npm run client-start\"",
+                };
+                break;
+            }
+            case Enums.angular: {
+                packageJson.scripts = {
+                    ...packageJson.scripts,
+                    "ng": "ng",
+                    "build": "ng build",
+                    "prod-build": "ng build --prod",
+                    "e2e": "ng e2e",
+                    "test": "ng test",
+                    "lint": "eslint ./app && ng lint",
+                    "start": "npm run prod-build && node ./app/server.js | bunyan",
+                    "client-start": "ng build --output-hashing=none --watch",
+                    "dev-start": "concurrently --kill-others \"npm run server-start\" \"npm run client-start\"",
+                };
+                break;
+            }
+        }
+
+        if (this.answers.db === Enums.sequelize) {
+            packageJson.scripts = {
+                ...packageJson.scripts,
+                "migrate": "sequelize db:migrate | bunyan",
+                "seeder": "sequelize db:seed:all | bunyan",
+            };
+        }
+
+        this.extendPackageJson(packageJson);
     }
 
     writing() {
-        this.fs.copyTpl(
-            this.templatePath(`${this.answers.db}/models/*`),
-            this.destinationPath('app/models/'),
-        );
+        let fsPaths = [
+            {
+                templatePath: `${this.answers.db}/models/*`,
+                destinationPath: 'app/models/',
+            },
+            {
+                templatePath: '*',
+                destinationPath: '',
+            },
+            {
+                templatePath: '.*',
+                destinationPath: '',
+            },
+        ];
 
         if (this.answers.db === Enums.sequelize) {
             const date = Math.floor(new Date().getTime() / 1000);
-            this.fs.copyTpl(
-                this.templatePath(`${Enums.sequelize}/migrations/create-users.js`),
-                this.destinationPath(`app/migrations/${date}-create-users.js`),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath(`${Enums.sequelize}/seeders/create-users.js`),
-                this.destinationPath(`app/seeders/${date}-create-users.js`),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath(`${Enums.sequelize}/database.js`),
-                this.destinationPath(`${Enums.paths.appConfig}database.js`),
-                this.getAnswers(),
-            );
-
-            this.fs.copyTpl(
-                this.templatePath(`${Enums.sequelize}/.sequelizerc`),
-                this.destinationPath('.sequelizerc')
-            );
-        } else if (this.answers.db === Enums.mongoose) {
-            this.fs.copyTpl(
-                this.templatePath(`${Enums.mongoose}/database.json`),
-                this.destinationPath(`${Enums.paths.appConfig}database.json`),
-                this.getAnswers(),
-            );
+            fsPaths = [
+                ...fsPaths,
+                {
+                    templatePath: `${Enums.sequelize}/migrations/create-users.js`,
+                    destinationPath: `app/migrations/${date}-create-users.js`,
+                },
+                {
+                    templatePath: `${Enums.sequelize}/seeders/create-users.js`,
+                    destinationPath: `app/seeders/${date}-create-users.js`,
+                },
+                {
+                    templatePath: `${Enums.sequelize}/database.js`,
+                    destinationPath: `${Enums.paths.appConfig}database.js`,
+                },
+                {
+                    templatePath: `${Enums.sequelize}/.sequelizerc`,
+                    destinationPath: '.sequelizerc',
+                }
+            ];
+        }
+        else if (this.answers.db === Enums.mongoose) {
+            fsPaths.push({
+                templatePath: `${Enums.mongoose}/database.json`,
+                destinationPath: `${Enums.paths.appConfig}database.json`,
+            });
         }
 
-        this.fs.copyTpl(
-            this.templatePath('*'),
-            this.destinationPath(),
-            this.getAnswers(),
-        );
-
-        this.fs.copyTpl(
-            this.templatePath('.*'),
-            this.destinationPath(),
-            this.getAnswers(),
-        );
+        this.executeFs(fsPaths);
     }
 }
