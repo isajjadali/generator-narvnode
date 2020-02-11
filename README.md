@@ -5,6 +5,7 @@ Yeoman generator for:
 * Express with KrakenJS
 * Mongoose or Sequelize
 * Customize Response Appender (Optional)
+* Socket.io (Optional)
 * CORS (Optional)
 * Bare-bones ReactJS with Webpack and Babel
 
