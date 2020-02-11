@@ -3,31 +3,11 @@
  */
 const Generators = require('yeoman-generator');
 
-const DefaultPackageJsonScripts = {
-    "start": "nodemon ./app/server.js | bunyan",
-    "server-start": "nodemon ./app/server.js | bunyan --output short --color",
-    "preinstall": "npm i -g concurrently nodemon",
-}
-
-const Enums = {
-    sequelize: 'Sequelize',
-    mongoose: 'Mongoose',
-    react: 'React',
-    angular: 'Angular',
-    none: 'None',
-};
-
-const nodeApp = 'app/';
-const Paths = {
-    sequelize: 'sequelize',
-    mongoose: 'mongoose',
-    nodeApp,
-    appConfig: `${nodeApp}config/`,
-    appModels: `${nodeApp}models/`,
-    appControllers: `${nodeApp}controllers/`,
-    appLib: `${nodeApp}lib/`,
-    appMiddlewares: `${nodeApp}middlewares/`,
-};
+const {
+    Enums,
+    DefaultPackageJsonScripts,
+    Paths,
+} = require('./enums');
 
 class GeneratorsBase extends Generators {
     getAnswers() {
