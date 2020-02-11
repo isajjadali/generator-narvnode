@@ -21,10 +21,10 @@
         "sequelize",
         "mongoose"
     ],
-    "name": "generator-narvnode",
+    "name": "generator-varnode",
     "repository": {
         "type": "git",
-        "url": "https://github.com/isajjadali/generator-narvnode"
+        "url": "https://github.com/isajjadali/generator-varnode"
     },
     "version": "1.0.0"
 }

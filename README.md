@@ -1,4 +1,4 @@
-# Generator Narvnode
+# Generator Varnode
 
 Yeoman generator for:
 
@@ -16,11 +16,11 @@ As this is a yeoman generator, make sure you have yeoman installed:
   
 To install the generator:
 
-  `npm install -g generator-narvnode`
+  `npm install -g generator-varnode`
   
 # Usage
 
-  `cd /path/to/app/directory; yo narvnode`
+  `cd /path/to/app/directory; yo varnode`
   
 # Files & App Structure
 
