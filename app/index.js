@@ -18,6 +18,7 @@ class GeneratorsBase extends Generators {
             isCorsEnable: this.answers.isCorsEnable,
             isCustomizeResponseAppenderEnable: this.answers.isCustomizeResponseAppenderEnable,
             appname: this.answers.appname,
+            isSocketIoEnable: this.answers.isSocketIoEnable,
             Enums,
             Paths,
         };
@@ -70,13 +71,22 @@ module.exports = class extends GeneratorsBase {
                 type: 'confirm',
                 name: 'isCorsEnable',
                 message: 'Would You Like To Use Cross-Origin Resource Sharing(CORS)?',
+                default: true,
                 store: true,
             },
             {
                 type: 'confirm',
                 name: 'isCustomizeResponseAppenderEnable',
                 message: 'Would You Like To Use Customize Response Appender?',
+                default: true,
                 store: true,
+            },
+            {
+                type: 'confirm',
+                name: 'isSocketIoEnable',
+                message: 'Would You Like To Enable Socket.io?',
+                default: true,
+                store: true
             },
             {
                 type: 'list',
@@ -154,6 +164,10 @@ module.exports = class extends GeneratorsBase {
 
         if (this.answers.isCustomizeResponseAppenderEnable) {
             dependencies.push('customize-response-appender');
+        }
+
+        if (this.answers.isSocketIoEnable) {
+            dependencies.push('socket.io');
         }
 
         switch (this.answers.frontend) {
