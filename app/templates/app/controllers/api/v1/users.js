@@ -10,7 +10,7 @@ const { Users } = global.db;
 module.exports = function (router) {
 
     router.get('/', asyncMiddleware(async (req, res) => {
-    <% if (db === 'sequelize') { %>
+    <% if (db === Enums.sequelize) { %>
 
             let user = await Users.findOne({ where: { email: 'sajjad@gmail.com' } });
 
@@ -27,12 +27,19 @@ module.exports = function (router) {
                 email: user.email,
             });
 
-            res.http200({
-                user: user,
-                token: token,
-            });
+            <% if (isCustomizeResponseAppenderEnable) { %>
+                res.http200({
+                    user: user,
+                    token: token,
+                });
+            <% } else { %>
+                res.status(200).json({
+                    user: user,
+                    token: token,
+                });
+            <% }  %>
 
-    <% } else if (db === 'mongoose') { %>
+    <% } else if (db === Enums.mongoose) { %>
 
             let user = await Users.findOne({ email: 'sajjad@gmail.com' });
 
@@ -49,11 +56,18 @@ module.exports = function (router) {
                 email: user.email
             });
 
-            res.status(200).json({
-                user: user,
-                token: token,
-            });
-    <% } else { } %>
+            <% if (isCustomizeResponseAppenderEnable) { %>
+                res.http200({
+                    user: user,
+                    token: token,
+                });
+            <% } else { %>
+                res.status(200).json({
+                    user: user,
+                    token: token,
+                });
+            <% }  %>
+    <% }  %>
   }));
 
 };

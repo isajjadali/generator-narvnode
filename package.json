@@ -2,7 +2,7 @@
     "dependencies": {
         "yeoman-generator": "^4.5.0"
     },
-    "description": "Yeoman generator for Express with KrakenJS, Mongoose or Sequelize, Sockets.io (Optional), AngularJS or ReactJS",
+    "description": "Yeoman generator for Express with KrakenJS, Mongoose or Sequelize, Customize Response Appender, CORS, Angular or ReactJS",
     "devDependencies": {
         "lodash": "^4.16.2"
     },

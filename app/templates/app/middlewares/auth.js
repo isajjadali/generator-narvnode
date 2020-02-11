@@ -17,12 +17,12 @@ module.exports = function () {
 
             if (!decodedToken) return res.http401(appErrors.invalidToken);
 
-            <% if (db === 'sequelize') { %>
+            <% if (db === Enums.sequelize) { %>
                 const user = await Users.findOne({
                     id: decodedToken.id,
                     deleted: false,
                 });
-            <% } else if (db === 'mongoose') { %>
+            <% } else if (db === Enums.mongoose) { %>
                 const user = await Users.findOne({
                     _id: decodedToken._id,
                     deleted: false,

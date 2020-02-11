@@ -3,25 +3,30 @@
  */
 const Generators = require('yeoman-generator');
 
-const defaultPackageJsonScripts = {
+const DefaultPackageJsonScripts = {
     "start": "nodemon ./app/server.js | bunyan",
     "server-start": "nodemon ./app/server.js | bunyan --output short --color",
     "preinstall": "npm i -g concurrently nodemon",
 }
 
 const Enums = {
+    sequelize: 'Sequelize',
+    mongoose: 'Mongoose',
+    react: 'React',
+    angular: 'Angular',
+    none: 'None',
+};
+
+const nodeApp = 'app/';
+const Paths = {
     sequelize: 'sequelize',
     mongoose: 'mongoose',
-    react: 'react',
-    angular: 'angular',
-    none: 'none',
-    migrations: 'migrations',
-    seeders: 'seeders',
-    paths: {
-        appConfig: 'app/config/',
-        appModels: 'app/models/',
-        nodeApp: 'app/',
-    }
+    nodeApp,
+    appConfig: `${nodeApp}config/`,
+    appModels: `${nodeApp}models/`,
+    appControllers: `${nodeApp}controllers/`,
+    appLib: `${nodeApp}lib/`,
+    appMiddlewares: `${nodeApp}middlewares/`,
 };
 
 class GeneratorsBase extends Generators {
@@ -33,6 +38,8 @@ class GeneratorsBase extends Generators {
             isCorsEnable: this.answers.isCorsEnable,
             isCustomizeResponseAppenderEnable: this.answers.isCustomizeResponseAppenderEnable,
             appname: this.answers.appname,
+            Enums,
+            Paths,
         };
     }
 
@@ -70,12 +77,14 @@ module.exports = class extends GeneratorsBase {
                 type: 'input',
                 name: 'description',
                 message: 'Describe Your App:',
+                store: true,
             },
             {
                 type: 'list',
                 name: 'db',
                 message: 'Which ORM Would You Like To Use?',
                 choices: [Enums.mongoose, Enums.sequelize],
+                store: true,
             },
             {
                 type: 'confirm',
@@ -141,7 +150,7 @@ module.exports = class extends GeneratorsBase {
         switch (this.answers.db) {
             case Enums.mongoose: {
                 dependencies.push(
-                    Enums.mongoose,
+                    'mongoose',
                     "mongoose-delete",
                 );
                 break;
@@ -150,7 +159,7 @@ module.exports = class extends GeneratorsBase {
                 dependencies.push(
                     'mysql',
                     'mysql2',
-                    Enums.sequelize,
+                    'sequelize',
                 );
                 devDependencies.push('sequelize-cli');
                 break;
@@ -168,7 +177,7 @@ module.exports = class extends GeneratorsBase {
         }
 
         switch (this.answers.frontend) {
-            case 'react': {
+            case Enums.react: {
                 dependencies.push(
                     'babel-core',
                     'babel-loader',
@@ -198,7 +207,7 @@ module.exports = class extends GeneratorsBase {
                 );
                 break;
             }
-            case 'angular': {
+            case Enums.angular: {
                 dependencies.push(
                     "@angular/animations",
                     "@angular/common",
@@ -286,32 +295,32 @@ module.exports = class extends GeneratorsBase {
     setupNode() {
         const fsPaths = [
             {
-                templatePath: 'app/*',
-                destinationPath: 'app/',
+                templatePath: `${Paths.nodeApp}*`,
+                destinationPath: Paths.nodeApp,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}config/*`,
-                destinationPath: 'app/config/',
+                templatePath: `${Paths.appConfig}*`,
+                destinationPath: Paths.appConfig,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}controllers/*`,
-                destinationPath: 'app/controllers/',
+                templatePath: `${Paths.appControllers}*`,
+                destinationPath: Paths.appControllers,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}controllers/api/v1/*`,
-                destinationPath: 'app/controllers/api/v1/',
+                templatePath: `${Paths.appControllers}api/v1/*`,
+                destinationPath: `${Paths.appControllers}api/v1/`,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}lib/*`,
-                destinationPath: 'app/lib/',
+                templatePath: `${Paths.appLib}*`,
+                destinationPath: Paths.appLib,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}middlewares/*`,
-                destinationPath: 'app/middlewares/',
+                templatePath: `${Paths.appMiddlewares}*`,
+                destinationPath: Paths.appMiddlewares,
             },
             {
-                templatePath: `${Enums.paths.nodeApp}middlewares/response/*`,
-                destinationPath: 'app/middlewares/response/',
+                templatePath: `${Paths.appMiddlewares}response/*`,
+                destinationPath: `${Paths.appMiddlewares}response/`,
             },
         ];
         this.executeFs(fsPaths);
@@ -323,14 +332,14 @@ module.exports = class extends GeneratorsBase {
         if (this.answers.isCorsEnable) {
             fsPaths.push({
                 templatePath: 'cors/*',
-                destinationPath: Enums.paths.appConfig,
+                destinationPath: Paths.appConfig,
             });
         }
 
         if (this.answers.isCustomizeResponseAppenderEnable) {
             fsPaths.push({
                 templatePath: 'customize-response-appender/*',
-                destinationPath: Enums.paths.appConfig,
+                destinationPath: Paths.appConfig,
             });
         }
 
@@ -340,7 +349,7 @@ module.exports = class extends GeneratorsBase {
     createPackageJson() {
         let packageJson = {
             scripts: {
-                ...defaultPackageJsonScripts,
+                ...DefaultPackageJsonScripts,
             }
         };
 
@@ -385,7 +394,7 @@ module.exports = class extends GeneratorsBase {
     writing() {
         let fsPaths = [
             {
-                templatePath: `${this.answers.db}/models/*`,
+                templatePath: `${this.answers.db.toLowerCase()}/models/*`,
                 destinationPath: 'app/models/',
             },
             {
@@ -403,27 +412,27 @@ module.exports = class extends GeneratorsBase {
             fsPaths = [
                 ...fsPaths,
                 {
-                    templatePath: `${Enums.sequelize}/migrations/create-users.js`,
-                    destinationPath: `app/migrations/${date}-create-users.js`,
+                    templatePath: `${Paths.sequelize}/migrations/create-users.js`,
+                    destinationPath: `${Paths.nodeApp}migrations/${date}-create-users.js`,
                 },
                 {
-                    templatePath: `${Enums.sequelize}/seeders/create-users.js`,
-                    destinationPath: `app/seeders/${date}-create-users.js`,
+                    templatePath: `${Paths.sequelize}/seeders/create-users.js`,
+                    destinationPath: `${Paths.nodeApp}seeders/${date}-create-users.js`,
                 },
                 {
-                    templatePath: `${Enums.sequelize}/database.js`,
-                    destinationPath: `${Enums.paths.appConfig}database.js`,
+                    templatePath: `${Paths.sequelize}/database.js`,
+                    destinationPath: `${Paths.appConfig}database.js`,
                 },
                 {
-                    templatePath: `${Enums.sequelize}/.sequelizerc`,
+                    templatePath: `${Paths.sequelize}/.sequelizerc`,
                     destinationPath: '.sequelizerc',
                 }
             ];
         }
         else if (this.answers.db === Enums.mongoose) {
             fsPaths.push({
-                templatePath: `${Enums.mongoose}/database.json`,
-                destinationPath: `${Enums.paths.appConfig}database.json`,
+                templatePath: `${Paths.mongoose}/database.json`,
+                destinationPath: `${Paths.appConfig}database.json`,
             });
         }
 

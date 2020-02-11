@@ -3,7 +3,7 @@
 const app = require('./index');
 const http = require('http');
 
-<% if (db == 'mongoose') { %>
+<% if (db == Enums.mongoose) { %>
 
     const mongoose = require('mongoose');
     const mongoString = require(`${global.paths.config}/database.json`).url;
